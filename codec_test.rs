@@ -117,15 +117,37 @@ fn main() {
         emit(charmap);
     } else {
     
-        let charmap = iso_8859_15::charmap();
-        let reverse = reverse_charmap(charmap);
-        let file = get_file_contents_u8("test.binary");
+        //let charmap = iso_8859_15::charmap();
+        //let reverse = reverse_charmap(charmap);
+        let file_contents = get_file_contents_u8("test.binary");
 
-        io::println(decode(file, charmap))  ;
-        io::println(fmt!("%?", encode(decode(file, charmap), reverse)));
+        io::println(file_contents.decode(~"huh"))  ;
+        io::println(fmt!("%?", file_contents.decode(~"huh").encode(~"")));
     }
 
 }
+
+trait Encodeable {
+    fn encode(&self, encoding: &str) -> ~[u8];
+}
+
+impl Encodeable for ~str {
+    fn encode(&self, encoding: &str) -> ~[u8] {
+        return encode(*self, reverse_charmap(iso_8859_15::charmap()));
+    }
+}
+
+
+trait Decodeable {
+    fn decode(&self, encoding: &str) -> ~str;
+}
+
+impl Decodeable for ~[u8] {
+    fn decode(&self, encoding: &str) -> ~str {
+        return decode(*self, iso_8859_15::charmap());
+    }
+}
+
 
 fn reverse_charmap(charmap : &[~str])-> ~LinearMap<char, u8> {
     let mut reverse = ~core::hashmap::linear::LinearMap::new();
