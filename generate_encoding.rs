@@ -12,17 +12,33 @@ fn main() {
     });
 
     let mut codecs_src = ~[];
+    let mut encode_src = ~[];
+    let mut decode_src = ~[];
+    
+    codecs_src.push(~"use core::hashmap::HashMap;\n");
     encodings.each(|x| {
-        let line = fmt!("mod %s;", *x);
-        codecs_src.push(line);
+        codecs_src.push(fmt!("mod %s;\n", *x));
+        encode_src.push(fmt!("&\"%s\" => { reverse_charmap(%s::charmap()) }\n", *x, *x));
+        decode_src.push(fmt!("&\"%s\" => { %s::charmap() }", *x, *x));
+
         true
     });
+    codecs_src.push(~"pub fn encode(string:&str, encoding: &str) -> ~[u8] {
+        let charmap = match (encoding) {");
+    codecs_src.push_all_move(encode_src);
+    codecs_src.push(~"    _ => {fail!(fmt!(\"Unmapped: '%?'!\", encoding))}
+        };
+        return encode_charmap(string, charmap);
+    }\n");
 
-    let head = "fn encode(string:&str, encoding: &str) {
-        match (encoding) {
+    codecs_src.push(~"pub fn decode(string: &[u8], encoding: &str) -> ~str {
+        let charmap = match (encoding) {\n");
+    codecs_src.push_all_move(decode_src);
+    codecs_src.push(~" _ => {fail!(fmt!(\"Unmapped: '%?'!\", encoding))}
+        };
+        return decode_charmap(string, charmap);}\n");
 
-        }
-    ";
+    codecs_src.push(get_file_contents("codec_base.rs"));
 
     emit(&~"codecs", codecs_src);
 }
@@ -86,22 +102,21 @@ fn get_charmap(name: &~str) -> ~[~str] {
                 if str::is_utf8(ucode_vec) { // Legal unicode
                     if(ucode_vec[0] > 0) { // Two-byte
                         let thestr = str::escape_unicode(str::from_bytes(ucode_vec));
-                        array.push(fmt!("\"\\u%s%s\", // 0x%s", str::slice(thestr,2,4), str::slice(thestr,6,8), tvhex));
+                        array.push(fmt!("\"\\u%s%s\", // 0x%s\n", str::slice(thestr,2,4), str::slice(thestr,6,8), tvhex));
                     } else { // Single-byte
                         let mut astr = str::from_byte(ucode_lo as u8);
                         if unicode::general_category::Cc(str::char_at(astr, 0)) { //control chars
                             astr = str::escape_default(astr);
                         } else if ['"', '\\'].any(|x| *x==str::char_at(astr, 0)) {
-                            io::println("Escapinating   "); 
                             astr = str::escape_default(astr);
                         }
-                        array.push(fmt!("\"%s\", // 0x%s", astr, tvhex));
+                        array.push(fmt!("\"%s\", // 0x%s\n", astr, tvhex));
                     }
                 } else {
                     if(ucode_vec[0] > 0) {
-                        array.push(fmt!("\"\\x%s\", // 0x%s", ucode_vechex, tvhex));
+                        array.push(fmt!("\"\\x%s\", // 0x%s\n", ucode_vechex, tvhex));
                     } else {
-                        array.push(fmt!("\"\\x%s\", // 0x%s", str::slice(ucode_vechex, 1, ucode_vechex.len()), tvhex));
+                        array.push(fmt!("\"\\x%s\", // 0x%s\n", str::slice(ucode_vechex, 1, ucode_vechex.len()), tvhex));
                     }
                 }
             },
