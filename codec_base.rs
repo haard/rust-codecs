@@ -42,3 +42,24 @@ fn reverse_charmap(charmap : &[~str])-> ~HashMap<char, u8> {
    }
    return reverse;
 }
+
+
+pub trait Encodeable  {
+    pub fn encode(&self, encoding: &str) -> ~[u8];
+}
+
+impl Encodeable for ~str {
+    pub fn encode(&self, encoding: &str) -> ~[u8] {
+        return encode(*self, encoding);
+    }
+}
+
+pub trait Decodeable {
+    pub fn decode(&self, encoding: &str) -> ~str;
+}
+
+impl Decodeable for ~[u8] {
+    pub fn decode(&self, encoding: &str) -> ~str {
+        return decode(*self, encoding);
+    }
+}
