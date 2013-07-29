@@ -1,5 +1,5 @@
 
-use core::unicode;
+use std::{path,io};
 use codecs::Encodeable;
 use codecs::Decodeable;
 mod codecs;
@@ -21,8 +21,8 @@ fn get_file_contents_u8(path: &str) -> ~[u8] {
 
 fn main() {
         let file_contents = get_file_contents_u8("test.binary");
-        io::println(file_contents.decode(~"iso_8859_15"))  ;
-        io::println(fmt!("%?", file_contents.decode(~"iso_8859_15").encode(~"iso_8859_15")));
+        io::println(file_contents.decode("iso_8859_15"))  ;
+        io::println(fmt!("%?", file_contents.decode("iso_8859_15").encode("iso_8859_15")));
 }
 
 

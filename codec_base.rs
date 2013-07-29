@@ -2,7 +2,7 @@
 
 fn encode_charmap(string: &str, reverse_charmap: ~HashMap<char, u8>) -> ~[u8] {
     let mut out = ~[];
-    for str::each_char(string) |chr| {
+    for string.iter().advance |chr| {
         out.push(*reverse_charmap.get(&chr));
     }
     return out; 
@@ -10,8 +10,8 @@ fn encode_charmap(string: &str, reverse_charmap: ~HashMap<char, u8>) -> ~[u8] {
 
 fn decode_charmap(data : &[u8], charmap :[&'static str, .. 256]) -> ~str {
     let mut out = ~"";  
-    for data.each |chr| {
-        out += charmap[*chr];
+    for data.iter().advance |chr| {
+        out = out + charmap[*chr];
     }
     return out;
 }
@@ -20,7 +20,7 @@ fn reverse_charmap(charmap : [&'static str, .. 256])-> ~HashMap<char, u8> {
     let mut reverse = ~HashMap::new();
     let mut n = 0;
     while n < charmap.len() {
-       reverse.insert(str::char_at(charmap[n], 0), n as u8);
+       reverse.insert(charmap[n].char_at(0), n as u8);
        n += 1;
    }
    return reverse;
